@@ -6,7 +6,7 @@ import reportWebVitals from './reportWebVitals';
 import { ApolloClient, ApolloProvider, createHttpLink, InMemoryCache } from '@apollo/client';
 
 const httpLink = createHttpLink({
-  link: "http://localhost:4000"
+  uri: "http://localhost:4000"
 })
 
 const client = new ApolloClient({
