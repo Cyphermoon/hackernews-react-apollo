@@ -1,10 +1,12 @@
 import '../styles/App.css';
-import LinkList from './LinkList';
+import CreateLink from './CreateLink';
+
 
 function App() {
   return (
     <div>
-      <LinkList />
+      {/* <LinkList /> */}
+      <CreateLink />
     </div>
 
   );
