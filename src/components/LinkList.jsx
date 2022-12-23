@@ -12,6 +12,16 @@ const LinkList = () => {
                     createdAt
                     url
                     description
+                    postedBy{
+                        id 
+                        name
+                    }
+                    votes{
+                        id
+                        user{
+                            id
+                        }
+                    }
                }
             }
         }
@@ -21,7 +31,9 @@ const LinkList = () => {
 
     return (
         <div>
-            {data && data.feed.links.map((link) => <Link key={link.id} link={link} />)}
+            {data &&
+                data.feed.links.map((link, idx) => <Link key={link.id} link={link} index={idx} />)
+            }
         </div>
     )
 }
