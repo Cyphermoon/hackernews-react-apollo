@@ -2,6 +2,7 @@ import { gql, useMutation } from '@apollo/client'
 import React from 'react'
 import { AUTH_TOKEN } from '../constants'
 import { timeDifferenceForDate } from '../util'
+import { FEED_QUERY } from './LinkList'
 
 const Link = ({ link, index }) => {
   const authToken = localStorage.getItem(AUTH_TOKEN)
@@ -29,6 +30,30 @@ const Link = ({ link, index }) => {
   const [vote] = useMutation(VOTE_MUTATION, {
     variables: {
       linkId: link.id
+    },
+    update: (cache, { data: { vote } }) => {
+      const [feed] = cache.readQuery({
+        query: FEED_QUERY
+      })
+
+      const updatedLinks = feed.links.map((feedLink) => {
+        if (feedLink.id === link.id) {
+          return {
+            ...feedLink,
+            votes: [...feedLink.votes, vote]
+          }
+        }
+        return feedLink
+      })
+
+      cache.writeQuery({
+        query: FEED_QUERY,
+        data: {
+          feed: {
+            links: updatedLinks
+          }
+        }
+      })
     }
   })
 

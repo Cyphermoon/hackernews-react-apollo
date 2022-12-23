@@ -2,31 +2,31 @@ import { gql, useQuery } from '@apollo/client';
 import React from 'react'
 import Link from './Link';
 
-const LinkList = () => {
-    const FEED_QUERY = gql`
-         {
-            feed {
+export const FEED_QUERY = gql`
+{
+   feed {
+      id
+      links {
+           id
+           createdAt
+           url
+           description
+           postedBy{
+               id 
+               name
+           }
+           votes{
                id
-               links {
-                    id
-                    createdAt
-                    url
-                    description
-                    postedBy{
-                        id 
-                        name
-                    }
-                    votes{
-                        id
-                        user{
-                            id
-                        }
-                    }
+               user{
+                   id
                }
-            }
-        }
-    `
+           }
+      }
+   }
+}
+`
 
+const LinkList = () => {
     const { data } = useQuery(FEED_QUERY)
 
     return (
