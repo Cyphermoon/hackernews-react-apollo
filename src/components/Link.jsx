@@ -2,49 +2,49 @@ import { gql, useMutation } from '@apollo/client'
 import React from 'react'
 import { AUTH_TOKEN } from '../constants'
 import { timeDifferenceForDate } from '../util'
-import { FEED_QUERY } from './LinkList'
+import { FEED_QUERY } from './LinkList';
 
-const Link = ({ link, index }) => {
-  const authToken = localStorage.getItem(AUTH_TOKEN)
-
-  const VOTE_MUTATION = gql`
-    mutation VoteMutation($linkId: ID!){
-      vote(linkId: $linkId){
+const VOTE_MUTATION = gql`
+mutation VoteMutation($linkId: ID!) {
+  vote(linkId: $linkId) {
+    id
+    link {
+      id
+      votes {
         id
-        link{
-          id
-          votes{
-            id
-            user {
-              id
-            }
-          }
-        }
-        user{
+        user {
           id
         }
       }
     }
-  `
+    user {
+      id
+    }
+  }
+}
+`;
+
+const Link = ({ link, index }) => {
+  const authToken = localStorage.getItem(AUTH_TOKEN)
 
   const [vote] = useMutation(VOTE_MUTATION, {
     variables: {
       linkId: link.id
     },
     update: (cache, { data: { vote } }) => {
-      const [feed] = cache.readQuery({
+      const { feed } = cache.readQuery({
         query: FEED_QUERY
-      })
+      });
 
       const updatedLinks = feed.links.map((feedLink) => {
         if (feedLink.id === link.id) {
           return {
             ...feedLink,
             votes: [...feedLink.votes, vote]
-          }
+          };
         }
-        return feedLink
-      })
+        return feedLink;
+      });
 
       cache.writeQuery({
         query: FEED_QUERY,
@@ -53,8 +53,9 @@ const Link = ({ link, index }) => {
             links: updatedLinks
           }
         }
-      })
+      });
     }
+
   })
 
   return (
