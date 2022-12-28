@@ -73,7 +73,7 @@ const Link = ({ link, index }) => {
   })
 
   return (
-    <div className="flex mt2 items-start">
+    <div className="flex mt3 items-start">
       <div className="flex items-center">
         <span className="gray">{index + 1}.</span>
         <div
@@ -85,8 +85,9 @@ const Link = ({ link, index }) => {
         </div>
       </div>
       <div className="ml1">
-        <div>
-          {link.description} ({link.url})
+        <div className='mb1 flex flex-wrap items-center'>
+          <span className='mr2-l'>{link.description}</span>
+          <small>({link.url})</small>
         </div>
         {authToken && (
           <div className="f6 lh-copy gray">

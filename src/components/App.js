@@ -9,7 +9,7 @@ import Search from './Search';
 
 function App() {
   return (
-    <div className='center w85'>
+    <div className='center w90 w-80-l'>
       <Header />
 
       <div className='pv1 ph3 background-gray'>
