@@ -83,6 +83,8 @@ const NEW_VOTES_SUBSCRIPTION = gql`
 
 const LinkList = () => {
   const getQueryVariables = (isNewPage, page) => {
+    // This methods calculates the values need for pagination
+
     const skip = isNewPage ? (page - 1) * LINKS_PER_PAGE : 0
     const take = isNewPage ? LINKS_PER_PAGE : 100
     const orderBy = { createdAt: "desc" }
@@ -103,16 +105,13 @@ const LinkList = () => {
 
   const location = useLocation()
   const navigate = useNavigate()
-
-  const isNewPage = location.pathname.includes("new")
-
   const page = parseInt(useParams().path)
+  const isNewPage = location.pathname.includes("new")
 
   const { data, loading, error, subscribeToMore } = useQuery(FEED_QUERY, {
     variables: getQueryVariables(isNewPage, page),
     fetchPolicy: "cache-and-network"
   })
-
 
   subscribeToMore({
     document: NEW_LINKS_SUBSCRIPTION,
@@ -136,11 +135,13 @@ const LinkList = () => {
   })
 
   subscribeToMore({
+    //Subscribes to newly created votes
     document: NEW_VOTES_SUBSCRIPTION,
   })
 
+
   if (loading) return <p>loading ...</p>
-  if (error) return <pre>{JSON.stringify(error, null, 2)}</pre>
+  else if (error) return <pre>{JSON.stringify(error, null, 2)}</pre>
   return (
     <div>
       {data &&
