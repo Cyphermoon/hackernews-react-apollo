@@ -1,30 +1,36 @@
 import { gql, useQuery } from '@apollo/client';
-import React from 'react'
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { LINKS_PER_PAGE } from '../constants';
 import Link from './Link';
 
 export const FEED_QUERY = gql`
-{
-   feed {
+  query FeedQuery(
+    $take: Int
+    $skip: Int
+    $orderBy: LinkOrderByInput
+  ) {
+    feed(take: $take, skip: $skip, orderBy: $orderBy) {
       id
       links {
-           id
-           createdAt
-           url
-           description
-           postedBy{
-               id 
-               name
-           }
-           votes{
-               id
-               user{
-                   id
-               }
-           }
+        id
+        createdAt
+        url
+        description
+        postedBy {
+          id
+          name
+        }
+        votes {
+          id
+          user {
+            id
+          }
+        }
       }
-   }
-}
-`
+      count
+    }
+  }
+`;
 
 const NEW_LINKS_SUBSCRIPTION = gql`
     subscription {
@@ -76,41 +82,95 @@ const NEW_VOTES_SUBSCRIPTION = gql`
 
 
 const LinkList = () => {
-    const { data, loading, error, subscribeToMore } = useQuery(FEED_QUERY)
+  const getQueryVariables = (isNewPage, page) => {
+    const skip = isNewPage ? (page - 1) * LINKS_PER_PAGE : 0
+    const take = isNewPage ? LINKS_PER_PAGE : 100
+    const orderBy = { createdAt: "desc" }
 
-    subscribeToMore({
-        document: NEW_LINKS_SUBSCRIPTION,
-        updateQuery: (prev, { subscriptionData }) => {
-            //This methods adds the newly added link to the data set and updates the store
+    return { skip, take, orderBy }
+  }
 
-            if (!subscriptionData.data) return prev
+  const getLinksToRender = (isNewPage, data) => {
+    if (isNewPage) {
+      return data.feed.links
+    }
 
-            const newLink = subscriptionData.data.newLink
-            const exists = prev.feed.links.find(({ id }) => id === newLink.id)
-            if (exists) return prev
+    const rankedList = data.feed.links.slice()
+    rankedList.sort((l1, l2) => l2.votes.length - l1.votes.length)
 
-            return Object.assign({}, prev, {
-                feed: {
-                    links: [newLink, ...prev.feed.links],
-                    count: prev.feed.links.length + 1,
-                    __typename: prev.feed.__typename
-                }
-            })
+    return rankedList
+  }
+
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  const isNewPage = location.pathname.includes("new")
+
+  const page = parseInt(useParams().path)
+
+  const { data, loading, error, subscribeToMore } = useQuery(FEED_QUERY, {
+    variables: getQueryVariables(isNewPage, page),
+    fetchPolicy: "cache-and-network"
+  })
+
+
+  subscribeToMore({
+    document: NEW_LINKS_SUBSCRIPTION,
+    updateQuery: (prev, { subscriptionData }) => {
+      //This methods adds the newly added link to the data set and updates the store
+
+      if (!subscriptionData.data) return prev
+
+      const newLink = subscriptionData.data.newLink
+      const exists = prev.feed.links.find(({ id }) => id === newLink.id)
+      if (exists) return prev
+
+      return Object.assign({}, prev, {
+        feed: {
+          links: [newLink, ...prev.feed.links],
+          count: prev.feed.links.length + 1,
+          __typename: prev.feed.__typename
         }
-    })
+      })
+    }
+  })
 
-    subscribeToMore({
-        document: NEW_VOTES_SUBSCRIPTION,
-    })
+  subscribeToMore({
+    document: NEW_VOTES_SUBSCRIPTION,
+  })
 
-    return (
-        <div>
-            {data &&
-                data.feed.links.map((link, idx) =>
-                    <Link key={link.id} link={link} index={idx} />)
-            }
+  if (loading) return <p>loading ...</p>
+  if (error) return <pre>{JSON.stringify(error, null, 2)}</pre>
+  return (
+    <div>
+      {data &&
+        getLinksToRender(isNewPage, data).map((link, idx) =>
+          <Link key={link.id} link={link} index={idx} />)
+      }
+      {isNewPage &&
+        <div className="flex ml4 mv3 gray">
+          <div
+            className='pointer mr2'
+            onClick={() => {
+              if (page > 1) {
+                navigate(`/new/${page - 1}`)
+              }
+            }}>
+            Previous
+          </div>
+          <div
+            className='pointer'
+            onClick={() => {
+              if (page < data.feed.count / LINKS_PER_PAGE) {
+                navigate(`/new/${page + 1}`)
+              }
+            }}>
+            Next
+          </div>
         </div>
-    )
+      }
+    </div>
+  )
 }
 
 export default LinkList

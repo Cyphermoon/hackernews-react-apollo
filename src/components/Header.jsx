@@ -15,8 +15,13 @@ const Header = () => {
                     </div>
                 </Link>
 
-                <Link to="/" className='ml1 no-underline black' >
-                    news
+                <div className="ml1">|</div>
+                <Link to="/top" className="ml1 no-underline black">
+                    top
+                </Link>
+
+                <Link to="/search" className='ml1 no-underline black' >
+                    Search
                 </Link>
 
                 <div className='ml1'>|</div>
